@@ -81,9 +81,37 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
    https://github.com/rsbarsania/Universal-JailBreak-Bypass
    ```
 7. After completing the aforementioned steps, log out from the application and wait for at least 10 minutes. Then, utilize the iOS_Buster-Win.bat script on Windows to perform keychain and memory dump.
+   Note: "Utilize 'iOS_Buster-Win.bat' to generate these two files. It's crucial that the filenames remain the same; otherwise, the tool might overlook findings. If you're manually creating them, ensure proper naming convention by using all lowercase letters. For the keychain file, the name must be 'keychain.json', and for the memory dump file, it must be 'strings.txt'.
    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/6ad1e8ed-5456-4073-9e26-616bcde60070)
 
-8.  
+9.  For the ``` keychain.json ``` file, select the option "2" and provide the application ``` Identifier ``` from the Frida output.
+10.  For the ``` strings.txt ``` file, select option "6" and provide the application ``` Name ``` (without double/single quotes) from the Frida output.
+11.  Now on your laptop, create a directory with any name. Let's say the application name is 'DVIA v2'. Then, simply create a folder named 'dvia'. Inside the 'dvia' folder, create a file named ``` keywords.txt ```. Additionally, create a folder named ``` input ``` and copy the ``` keychain.json ``` file and ``` strings.txt ``` file inside the ``` input ``` folder.
 
+     Note: Ensure that every file or folder name is in lowercase letters.
+     
+       ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/4e3721ab-c2e4-4f8a-9c19-59b023a3c3b4)
+12. Open the ``` keywords.txt ``` file in a text editor like Notepad, and input all sensitive data as keywords for the searching process, such as username, password, email, pin, etc.
 
+   Note: Be very careful when adding data in the 'keywords.txt' file. Ensure there are no empty lines, especially at the end. Sometimes, the application URL-encodes special characters, so make sure to repeat the keyword by converting it into URL-encoded form. For example, as shown in the image below, 'Password@123' is provided and repeated by URL encoding the '@' symbol, making it 'Password%40123'.
+
+   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/5bc5806f-48c5-4de7-bfa0-2d9e0b5c0040)
    
+13. Using 3utools, just drag and drop the ``` dvia ``` folder in the ``` applications ``` folder present in the ``` iOS ``` directory of the iOS Buster tool.
+
+   Note: 'a-sample-folder' directory is present inside the 'applications' directory for your reference, providing information on the necessary files and folders.
+
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c83a3977-0691-43df-9244-972f08a47adf)
+
+14. Now we are all set to execute our iOS Buster tool. 
+   Launch the target application, in our case, it is 'DVIA v2', but do not log in. Connect the iOS device via SSH and execute the following command: ``` ios-buster.sh -a "<app-name>" -d applications/<folder-name> ```
+
+    ```
+    ./ios-buster.sh -a dvia -d applications/dvia
+    ```
+
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/447ca84b-fb3e-4ba2-ad4e-e0e7e2e9615f)
+
+15. The following pop-up will appear on your iOS device screen once the iOS Buster starts the penetration test.
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/e36b0cc4-24e4-4be1-939e-2275fdf75a09)
+
