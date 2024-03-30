@@ -25,3 +25,31 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
    ```
    Note: If you get an error while connecting such as ``` WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED! ``` then simply go to the ``` C:\Users\<username>\ ``` and delete the ``` .ssh ``` folder and then try to reconnect.
    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/67e68621-bdb9-4d40-94aa-e93a9245ff18)
+7. Execute the following command to unzip the contents:
+   ```
+   unzip iOS-Buster*.zip
+   ```
+   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/8469b545-0b0f-4e73-90ea-f16738dd4e33)
+8. Execute the following commands to give the executable permission:
+   ```
+   cd iOS-Buster-KDBhati/iOS
+   ```
+   ```
+   chmod +x *.sh
+   ```
+   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/86a83755-01df-468d-b00b-33db9c300531)
+9. We need some tools to be installed before running the iOS Buster tool as listed below:
+    ```
+    gawk nano unzip coreutils tree libplist-utils cycript lldb
+    ```
+    To install these tools run the Install-Setup.sh file:
+      ```
+      ./Install-Setup.sh
+      ```
+10. The tool is ready to use now. Check the Usage section to get proper instructions:
+    ```
+    ./ios-buster.sh
+    ```
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c1ad30a8-8422-4d93-a493-f64fd16573e9)
+
+   
