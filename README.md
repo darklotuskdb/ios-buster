@@ -1,7 +1,7 @@
 # iOS Buster: Automation for iOS Penetration Testing
 The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of performing both static and dynamic testing. It provides detailed reports, including STR, highlighting discovered vulnerabilities. It serves as a valuable addition to MobSF.
 
-# Tool can Test The Following Vulnerabilities
+# Tool Can Pentest The Following Vulnerabilities
 ```
 Application Allows Custom Keyboards On Sensitive Fields
 Application Binary Is Not Obfuscated [Need to improve]
