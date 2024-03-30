@@ -101,7 +101,7 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
 
    Note: 'a-sample-folder' directory is present inside the 'applications' directory for your reference, providing information on the necessary files and folders.
 
-    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c83a3977-0691-43df-9244-972f08a47adf)
+   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c83a3977-0691-43df-9244-972f08a47adf)
 
 14. Now we are all set to execute our iOS Buster tool. 
    Launch the target application, in our case, it is 'DVIA v2', but do not log in. Connect the iOS device via SSH and execute the following command: ``` ios-buster.sh -a "<app-name>" -d applications/<folder-name> ```
