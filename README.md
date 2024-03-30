@@ -115,3 +115,31 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
 15. The following pop-up will appear on your iOS device screen once the iOS Buster starts the penetration test.
     ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/e36b0cc4-24e4-4be1-939e-2275fdf75a09)
 
+16. The tool will cover more than 30 test cases, including both static and dynamic assessments, in less than 2 minutes. Additionally, it will provide a report detailing all discovered vulnerabilities.
+      ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/d3953350-05af-4ab8-a7ed-b679b3152986)
+
+17. Export the Logs-<app-name>.zip folder from the "app-name" directory present inside the "applications" folder of the iOS Buster tool. These files contain all the detailed logs of the tool scan activities. Additionally, the best part is that you will receive a ``` report ``` of all the findings, including vulnerability descriptions, locations, steps to reproduce, and remediation for all the discovered issues, saving a lot of time.
+
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/280556e2-5210-41e7-8f05-ed8d4029cab6)
+
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/17aae5d8-f1e7-44a2-a417-c88859dc0394)
+
+    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/a960b636-1680-4ded-8c1b-fb5d776f270b)
+
+18. In the report file, i.e. ``` 3-Report.txt ```, you have to select the value and perform a 'replace all' operation. For example, just copy the "<----IPA-File---->" placeholder and replace it with the IPA target application file name. This value will then be updated in all the STRs. Similarly, repeat the process for other placeholders.
+
+# Note
+This tool is still under development and is intended solely for ethical hackers to conduct white hat security penetration testing. If you misuse this tool, I will not be responsible for any consequences. Please inform me if you encounter any errors while using it, and also suggest additional findings to include in this tool.
+
+# About Me
+
+* **DarkLotus** - *Cyber Security Researcher* - [DarkLotusKDB](https://github.com/darklotuskdb)
+
+### Social Media Handles
+* [Twitter](https://twitter.com/darklotuskdb)
+* [Medium](https://medium.com/@darklotus)
+* [Linkedin](https://www.linkedin.com/in/kamaldeepbhati/)
+* [Instagram](https://www.instagram.com/kamaldeepbhati/)
+
+[BuyMeACoffee](https://www.buymeacoffee.com/darklotus) If you like my work <3
+
