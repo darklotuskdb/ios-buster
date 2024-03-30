@@ -1,0 +1,1159 @@
+Sensitive Data Hard-Coded In Client-side Code
+---------------------------------------------
+Description:
+The application binary or an item within the application package embeds a static secret, posing a potential security risk. Hard-coded secrets increase the susceptibility of the application to unauthorized access and exploitation by malicious actors. It's crucial to avoid storing sensitive information directly within the application binary or resources, as it can be easily extracted and exploited.
+
+
+App Name: <----app-name---->
+File Path: <--bfp-->
+File Name:
+
+Steps To Reproduce:
+Download the .ipa file of "<----app-name---->" iOS Application on your host machine.
+Rename the "<----IPA-File---->.ipa" file to .zip file.
+Extract the contents of the .zip file and go inside the Payload folder.
+Navigate to the "File Path" mentioned in the "Instances" section.
+Open the "<--hfile-->" file in any text editor.
+Observe that the sensitive information such as "<--hdata-->" is present in the file.
+
+PoC Caption:
+Screenshot showing that the <--hdata--> is already hard-coded.
+
+
+Remediation:
+Avoid hard-coding secrets directly into the source code that will eventually be compiled into a mobile application. While this practice is discouraged, it can be challenging to implement. Below, we'll explore common scenarios and their corresponding solutions for remediation.
+
+
+
+=============
+
+Missing Anti-debugging Mechanism
+--------------------------------------------
+Description:
+The mobile application lacks protection against debugger attachment. On the iOS platform, operating system/kernel-level controls prevent debuggers from attaching to distribution builds of applications. It's essential to note that both system and application-level "anti-debug attaching" controls can still be bypassed on jailbroken devices.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install the "<----app-name---->" application iOS application.
+Open "Sileo" on the Jailbroken device and search for "lldb" and install it.
+Run the following command in the terminal to list the processes running in the host device and to get the process id:
+$ frida-ps -Ua
+From the host machine, SSH into the jailbroken device using a terminal.
+Launch the application and login into the it.
+In the terminal, run the below mentioned commands to attach lldb to the application process.
+lldb -p {PID-of-the-app}
+Enter below-mentioned command to list the main executable and all dependent shared libraries.
+(lldb) image list
+Enter below-mentioned command to start the execution, which will continue unabated until a breakpoint is hit or the process terminates.
+(lldb) run
+Observe the terminal output once the process is executed.
+Enter below-mentioned command to read the general purpose registers for the current thread.
+(lldb) register read
+Observe that the application shows all the executable, all dependent shared libraries, execution of the current process and also indicates the general-purpose register values for the current thread indicating that there is lack of Anti-Debuggging Protection.
+
+PoC Caption:
+Terminal Screenshot showing the PID of the process.
+Terminal Screenshot showing the list of the main executable and all dependent shared libraries.
+Terminal Screenshot showing the execution of the process.
+Terminal Screenshot showing the general purpose registers.
+
+
+Remediation:
+While anti-debugging techniques can be circumvented on jailbroken platforms, implementing multiple layers of anti-debugging controls alongside other binary hardening techniques like control flow obfuscation and tamper detection can significantly increase the difficulty for attackers. These controls are particularly beneficial during the execution of sensitive code, such as handling cryptographic keys, as they prevent attackers from easily accessing or modifying sensitive data in memory or registers using a debugger. If robust anti-debugging controls are necessary, consider utilizing commercial solutions like Arxan or EnsureIT, which provide comprehensive anti-debug protections.
+
+
+
+=============
+
+ARC Not Enabled
+--------------------
+Description:
+The application was built without Automatic Reference Counting ("ARC") enabled, necessitating the manual handling of reference counting within the codebase.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Download the "<----IPA-File---->.ipa" file on your host machine.
+Rename the "<----IPA-File---->.ipa" file to "file.zip" file.
+Extract the contents of the "file.zip" file using zip utility such as 7z.  
+Navigate to the "File Path" as mentioned in the above "Instances" section to grab the application binary file "<----app-name---->".
+Run the following command against the binary:
+otool -I -v "<----app-bin-name---->" | grep "_objc_"
+Note that the binary is not compiled using ARC as the following symbols are missing in the output of otool:
+_objc_autoreleaseReturnValue 
+_objc_autoreleaseReturnValue 
+_objc_release 
+_objc_retain 
+_objc_retainAutoreleasedReturnValue 
+_objc_storeStrong
+
+OR 
+Observe the response and note that the strings such as "_objc_release" was not found in the response indicating that application does not use automatic reference counting (ARC) & may be susceptible to memory leaks.
+
+PoC Caption:
+Screenshot showing that the binary is not compiled with ARC.
+
+
+Remediation:
+Prevent the deactivation of ARC and confirm that "Objective-C Automatic Reference Counting" is activated within the Xcode project settings. Since Xcode version 4.2, ARC is typically accessible and activated by default.
+
+
+
+=============
+
+ATS Configuration Is Insecure
+-------------------------------
+Description:
+The application's declarative Application Transport Security (ATS) configuration includes exceptions that could lead to insecure network communications. These exceptions permit the application to establish connections with servers via potentially insecure channels.
+
+
+App Name: <----app-name---->
+File Path: Payload/<----app-bin-name---->.app/
+File Name: Info.plist
+
+Steps To Reproduce:
+Copy the "<----IPA-File---->.ipa" file on your host machine.
+Rename the .ipa file to .zip file.
+Extract the contents of the .zip file and go inside the 'Payload' folder.
+Open the "Info.plist" file with any editor like plist editor.
+Observe that "NSAllowsArbitraryLoads" flag under "NSAppTransportSecurity" is set to "true" which disables "App Transport Security (ATS)".
+
+PoC Caption:
+Screenshot showing the "Info.plist" file contents showing "App Transport Security" is disabled.
+
+
+Remediation:
+Guarantee that the server-side endpoint's configuration permits only TLSv1.2 connections (or higher) for all interactions initiated from the application. Whenever feasible, refrain from incorporating unnecessary ATS exceptions in the application's settings. Instead, encourage backend providers and third parties to update their server-side configurations to adhere to TLS best practices. If exceptions are deemed essential, ensure they are specific to each endpoint by configuring "NSExceptionDomains" in a granular manner.
+
+
+
+=============
+
+Application Minimum OS Version Is Vulnerable
+--------------------------------------------
+Description:
+The application states compatibility with an operating system (OS) version known to harbor significant, publicly disclosed vulnerabilities.
+
+
+App Name: <----app-name---->
+File Path: Payload/<----app-bin-name---->.app/
+File Name: Info.plist
+
+Steps To Reproduce:
+Download the .ipa file of "<----app-name---->" application on your MAC machine.
+Rename the .ipa file to .zip file.
+Extract the contents of the .zip file.
+Navigate to the "File Path" as mentioned in the "Instances" section.
+Open the "Info.plist" file with any Plist editor.
+Observe that the application supports minimum OS version <--mos--> that contains publicly known vulnerabilities.
+
+PoC Caption:
+Screenshot showing that the application supports MinimumOSVersion to be <--mos--> which contains publicly known vulnerabilities.
+
+
+Remediation:
+Cease support for outdated and vulnerable iOS versions. Update the minimum supported version to the latest version minus two; for instance, if the latest version is 17, set the minimum supported version to 15.
+
+
+
+=============
+
+Use Of Insecure Random Function
+---------------------------------
+Description:
+The application lacks a cryptographically secure pseudo-random number generator (PRNG), which could result in predictable output. Without a secure PRNG, attackers may exploit predictability to recover past and predict future outputs. Unlike standard PRNGs, cryptographically secure PRNGs (CSPRNGs) use an unpredictable seed, ensuring output indistinguishable from randomness. CSPRNGs are crucial for security-critical functions, such as generating cryptographic keys or passwords, as they prevent unauthorized access. Using an insecure PRNG for generating security tokens may compromise data integrity, enabling attackers to predict and exploit these values for unauthorized access.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Decompile the application binary.
+Open the "DecompiledAsset.c" file using any Notepad++ Editor and search for the "arc4random()" function.
+Observe that the application uses the insecure class for generating random numbers.
+
+PoC Caption:
+Screenshot showing application using random function.
+
+
+Remediation:
+Replace standard pseudo-random number generators with cryptographically secure alternatives like Java's "SecureRandom" or Unix-like systems' /dev/urandom. Ensure these generators are seeded with unpredictable values, consulting documentation for proper initialization. Avoid custom CSPRNGs when possible; if unavailable, consider NIST-recommended options like Hash_DRBG or HMAC_DRBG. Consult NIST SP 800-90A and ANSI X8.82 Part 3 for implementation guidance. Explore True Random Number Generators (TRNGs) for higher randomization levels, such as ARM TrustZone TRNG for Android or SEP TRNG for iOS.
+
+
+
+=============
+
+User Related Data Cached In WebView
+-----------------------------------
+Description:
+The application stores sensitive data from both HTTP and HTTPS responses in an unencrypted local database on the device. WebView, by default, caches these responses indefinitely unless instructed otherwise by cache-related headers.
+
+
+App Name: <----app-name---->
+File Path: <--dfp-->/Library/Caches
+File Name: Cache.db
+
+Steps To Reproduce:
+Launch the iOS application "<----app-name---->" on a test device.
+Log in to the application.
+Browse some of the functionalities in the application.
+Now using "iFile" navigate to the "File path" mentioned in the "Instances" section on test device.
+Copy the file "Cache.db" to your host machine.
+Open "Cache.db" file in a text SQLite browser.
+Observe that the user specific information such as "User ID" which is used for login is being stored in the web cache.
+
+PoC Caption:
+Screenshot showing that the user specific information such as "User ID" which is used for login is being stored in the web cache.
+
+
+Remediation:
+The application must ensure that sensitive data is not cached within the WebView cache.
+
+
+
+=============
+
+User Related Data In Devie Local Storage
+--------------------------------------------
+Description:
+Sensitive data resides locally on the device in an unencrypted state, stored within various locations such as SQLite databases, configuration files, cache directories, and other application sandbox directories. While iOS sandboxing typically provides security for local storage, compromised devices may still pose risks to data integrity.
+
+
+App Name: <----app-name---->
+File Path: <--dfp-->
+File Name: 
+
+Steps To Reproduce:
+Launch the iOS application "<----app-name---->" on a test device.
+Log in to the application.
+Browse some of the functionalities in the application.
+Now using iFile navigate to the "File path" mentioned in the "Instances" section on test device.
+Copy the file "<----file-name---->" to your host machine.
+Open "<----file-name---->" file in a text editor.
+Observe that the user specific information such as "User ID" which is used for login is being stored in the local storage.
+
+PoC Caption:
+Screenshot showing that the user specific information such as "User ID" which is used for login is being stored in the local storage.
+
+OR
+
+Install the "<----app-name---->" on a test device.
+Log in to the application.
+Browse some of the functionalities in the application.
+Now using iFile navigate to the "File path" mentioned in the "Instances" section on test device.
+Observe that the user specific information such as "User ID" which is used for login is being used as file name in the local storage.
+
+PoC Caption:
+Screenshot showing that the application generates a folder with the name "User ID" in local storage.
+Screenshot showing that the application generates a file with the name "User ID" in local storage.
+
+
+Remediation:
+Ensure secure retrieval of sensitive data from the server after user authentication. When offline access to sensitive data is required, encrypt it without using the "NSFileProtectionNone" attribute. Avoid storing authentication credentials on the device; instead, utilize revocable authentication tokens.
+To enhance security, disable auto-correct and form completion features, particularly for sensitive fields beyond passwords. Configure "UITextAutocorrectionTypeNo" for "UITextField" to disable caching in the "autocorrectionType" property.
+
+
+
+=============
+
+User Related Data Stored In Plist
+-----------------------------------
+Description:
+UserDefaults is designed to retain values utilized for configuring the default setup of the application. For instance, if the app permits multiple background images or themes, the selected theme should be stored in UserDefaults.
+The data resides in a plaintext property list (plist) file within the application sandbox. UserDefaults plist relies solely on the application sandbox for protection, lacking encryption or additional security measures from the operating system. Additionally, on a jailbroken device, the application sandbox becomes entirely accessible to attackers, offering no safeguard for stored data.
+
+
+App Name: <----app-name---->
+File Path: <--dfp-->
+File Path: <--bfp-->
+File Name: 
+
+Steps To Reproduce:
+Install the "<----app-name---->" application in a jailbroken device and ensure that you have "iFile" installed in it.
+Log in and access the application with valid user credentials.
+Open "iFile" and navigate to the "File Path" as mentioned in the above "Instances" section.
+Open "<---pfile-name--->.plist" file using any plist editor.
+Observe that "<---pfile-name--->.plist" file contains "Email" data in unencrypted format.
+
+PoC Caption:
+Screenshot showing that "<---pfile-name--->.plist" file contains "Email" data in unencrypted format.
+
+Remediation:
+Minimize local storage usage unless essential. Encrypt sensitive data stored on the device's file system, ensuring it's encrypted by the application.
+
+
+
+=============
+
+Security Access Control Missing From iOS Keychain
+-----------------------------------------------------
+Description:
+Security Access Controls related to biometric authentication are not applied to Keychain items created when utilizing Touch ID or Face ID. In iOS 11.3 and later versions, Apple introduced ACL authentication types specifically for biometric authentication, such as "biometryCurrentSet" and "biometryAny." These types exclusively rely on Touch ID or Face ID and do not permit fallback to a passcode.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install Frida in both PC and test device. (Refer: Appendix C)
+Install Objection on PC. (Refer: Appendix C)
+Connect the jailbroken test device to the host machine which has Objection tool installed in it.
+Login to the application.
+Run the following command in terminal to list the processes running in the host device:
+$ frida-ps -Ua
+In terminal, run the following command to start the Objection:
+$ objection -g <----app-pkg-name----> explore
+# ios keychain dump
+Observe that the "access_control" attribute is set to "None" indicating biometric authentication-related Security Access Controls like "biometryAny" or "biometryCurrentSet" are not set on Keychain.
+
+PoC Caption:
+Screenshot showing keychain.json file is dumped via Objection tool.
+Screenshot showing that the "access_control" attribute is set to "None" indicating biometric authentication-related Security Access Controls are not set on Keychain.
+
+
+Remediation:
+To ensure the use of biometrics, incorporate the appropriate ACL authentication types ("biometryAny" or "biometryCurrentSet") when adding entries to the Keychain via the Apple Keychain API. Utilization of these biometrics ACL authentication types requires a minimum iOS version of 11.3.
+
+
+
+=============
+
+User Related Data Stored in Device Keychain
+--------------------------------------------
+Description: 
+The application stores sensitive data in plaintext within the iOS keychain, a password-management system acting as an encrypted container on iOS devices. This encrypted data requires encryption keys present on the device. A user's keychain may hold various sensitive information like passwords, private keys, and certificates. Tools like "keychain dumper" can automatically access the keychain by adjusting group entitlements to wildcard values. Sensitive data stored in plaintext within the iOS keychain may be vulnerable to exposure if an attacker gains device access, either locally or through a remote exploit.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install Frida in both PC and test device. (Refer: Appendix C)
+Install Objection on PC. (Refer: Appendix C)
+Connect the jailbroken test device to the host machine which has Objection tool installed in it.
+Login to the application.
+Run the following command in terminal to list the processes running in the host device:
+$ frida-ps -Ua
+In terminal, run the following command to start the Objection:
+$ objection -g <----app-pkg-name----> explore
+# ios keychain dump
+Observe that the user sensitive information like "username" and "token" been stored in iOS keychain without ACL "biometryAny" or "biometryCurrentSet".
+
+PoC Caption:
+Screenshot showing that the application is storing token in keychain dump.
+Screenshot showing the decoded form of JWT token where application is storing the login ID.
+
+
+Remediation:
+Sensitive data stored in the iOS keychain should undergo encryption with a cryptographically secure algorithm and remain decrypted only when necessary. The encryption key should stem from the user's password via a key derivation function such as PBKDF2 or bcrypt. Key derivation functions execute multiple pseudorandom functions, like cryptographic hashes or HMAC, on an input alongside a salt value.
+
+
+
+=============
+
+User Related Data Captured In System Logs
+--------------------------------------------
+Description:
+Sensitive data is recorded in the device's system logs, also known as syslog. These logs encompass a broad spectrum of data, spanning from application errors to runtime process details. For instance, the logs can be directly accessed on a device by reading from the "/var/run/lockdown/syslog.sock" socket.
+
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Connect iOS device to Mac machine and use a tool like Xcode to analyze the system logs.  
+Launch the "<----app-name---->" application on your test iOS device.
+Login to the application and observe the devices system logs.
+Notice that the sensitive data like "username", "password", "access_token", "PoliceNo" and "customerMobile" is logged into Devices system log.
+
+PoC Caption:
+Screenshot showing that the sensitive data like "User Login" is logged into Devices system log.
+
+
+Remediation:
+Sensitive information, encompassing end-user data and internal application or backend data, must not be logged to the system log. Application logs should provide limited, generic information relevant to the application. No data should be written to the system logs unless it's directly usable by end-users. For detailed logging requirements, incorporate "DEBUG" macros within the application.
+
+
+
+=============
+
+Cipher Initialized with a Hard-coded Key in Mobile Client-side Code
+-----------------------------------------------------------------------
+Description:
+
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Decompile the binary of the application.
+Look for the method "CCPassword".
+Observe that from the documentation of the libraries that it is used to encrypt and decrypt data.
+
+PoC Caption:
+Screenshot showing the hardcoded key used for encrypuon or decryption of the password.
+
+
+Remediation:
+
+
+
+
+
+=============
+
+Null Initialization Vector
+------------------------------
+Description:
+
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Decompile the source code using IDA Pro or Hopper or any other de-compiling tools
+Look for AESEncryptWithKey.
+Observe that there is a method called TL_AES256DecryptWithKey which uses the cccrypt function with an IV value set as 0.
+
+PoC Caption:
+Screenshot showing the application specifies the AES algorithm in the CCCryptorCtreate function() with a null IV.
+
+
+Remediation:
+
+
+
+
+
+=============
+
+PIE ASLR Not Implemented
+----------------------------
+Description:
+The application was compiled without PIE ASLR enabled. Address Space Layout Randomization (ASLR) is a security measure that randomly loads applications into different memory addresses upon each launch, preventing exploits from exploiting predictable memory locations. In iOS 4.3+ (unavailable in earlier OS versions), ASLR operates at two levels of completeness, contingent upon whether the application was compiled with support for Position Independent Executables (PIE).
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Download the .ipa file of the "<----app-name---->" iOS Application on your host machine.
+Rename the ".ipa" file to the ".zip" file.
+Extract the contents of the ".zip" file and navigate to the "Payload" folder.
+Run the following command against the binary:
+otool -hv <----app-bin-name---->
+Observe the output showing the PIE flag is not set in the application binary.
+
+PoC Caption:
+Screenshot showing the PIE flag is not set in the application binary.
+
+
+Remediation:
+To enable PIE ASLR during the application build process:
+1. Ensure the application is built for iOS 4.3 or later, where ASLR is supported.
+2. If using Xcode:
+   - Set the "Generate Position-Dependent Executable" build setting to "No" in Build Settings under the Linking section.
+   - Set the "Generate Position-Dependent Code" build setting to "No" in Build Settings under the Apple Clang - Code Generation section.
+3. If compiling via the command line, include the "-pie" flag to enable PIE ASLR.
+
+
+
+=============
+
+Stack Canaries Not Enabled
+------------------------------
+Description:
+The application lacks stack canaries, making it susceptible to arbitrary code execution in the event of a stack buffer overflow vulnerability.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Download the "<----IPA-File---->.ipa" file on your host machine.
+Rename the "<----IPA-File---->.ipa" file to "file.zip" file.
+Extract the contents of the "file.zip" file using zip utility such as 7z.  
+Navigate to the "File Path" as mentioned in the above "Instances" section to grab the application binary file "<----app-bin-name---->".
+Use the following command to check if stack smashing protection is enabled.
+otool -I -v "<----app-bin-name---->" | grep -i stack
+Observe that the following symbols are not present which indicates stack smashing protection is not enabled.
+___stack_chk_fail
+___stack_chk_guard
+
+PoC Caption:
+Screenshot showing that the stack canaries is not enabled.
+
+
+Remediation:
+Recompile the application with stack canaries enabled in the build setting. In Xcode, add the "-fstack-protector-all" flag to the "Other C Flags" build setting. Keep in mind that most stack protector implementations will rearrange the layout of local variables.
+
+
+
+=============
+
+No Jailbreak Detection
+--------------------------
+Description:
+The application lacks jailbreak detection, which is essential for maintaining the integrity of mobile devices and enforcing security controls. Running on a modified or jailbroken device compromises the reliability of platform-provided security controls.
+
+
+App Name: <----app-name---->
+IPA File Name: <----JB---->.ipa
+
+Steps To Reproduce:
+Download and install the "<----JB---->.ipa" application on your jailbroken device.
+Open and access the application.
+Observe that application is not detecting jailbreak.
+SSH to your test device and run the below commands:
+ps aux | grep -i "<----app-bin-name---->"
+id
+Observe that the application can be installed on jail broken device and running as a process.
+
+PoC Caption:
+Screenshot showing that the application running successfully as a process on a jailbroken device.
+
+
+Remediation:
+Apple does not offer an API for detecting jailbroken devices, necessitating each application to develop its own proprietary solution. Implementing effective jailbreak detection can pose challenges, requiring product teams to focus on increasing the effort needed to bypass root detection. Layering jailbreak detection with binary hardening controls adds complexity, deterring attackers from reverse-engineering the detection mechanisms. Otherwise, attackers may exploit "bypass" techniques, tricking the application into disregarding jailbroken status.
+
+
+
+=============
+
+Jailbreak Detection Bypass
+-----------------------------
+Description: 
+The application is susceptible to installation on jailbroken devices, despite having jailbreak protection. This protection can be bypassed by hooking the debugger and manipulating method responses. Running on a modified or jailbroken device compromises the reliability of platform-provided security controls.
+
+App Name: <----app-name---->
+IPA File Name: <----JB---->.ipa
+
+Steps To Reproduce:
+Install Frida in both PC and test device. (Refer: Appendix C)
+Download and install the "<----JB---->.ipa" on your jailbroken device.
+Access the application and observe that the application throws an error message indicating the application cannot be installed on a jailbroken device.
+Download the "Universal Jailbreak Bypass" tool from the link below to generate a Frida Jailbreak bypass script that will be automatically used by Frida:
+https://github.com/rsbarsania/Universal-JailBreak-Bypass
+Run the tool using windows power shell.
+Enter the application identifier from the Frida output.
+Or follow the below steps:
+Run the following command in terminal to list the processes running in the host device:
+frida-ps -Ua
+In terminal, run the following frida command to bypass the jailbreak detection (Refer to the Appendix D):
+frida -U -l file.js -f "<----app-pkg-name---->"
+Now jailbreak detection error is bypassed and the application can be accessible.
+Observe that application is not detecting jailbreak.
+SSH to your test device and run the below commands:
+id
+ps aux | grep -i "<----app-bin-name---->"
+Observe that the application can be installed on jail broken device and running as a process.
+
+PoC Caption:
+Screenshot showing the application detects the jailbroken device and throws an error.
+Screenshot showing the jailbreak detection bypass is applied.
+Screenshot showing that the jailbreak detection is bypassed in the application successfully.
+Screenshot showing the application running successfully as a process on a jailbroken device.
+
+OR
+
+Download and install the "<----JB---->.ipa" on your jailbroken device.
+Open the application and observe that the application discloses the blank page indicating the application cannot be installed on a jailbroken device.
+Install "Liberty Lite" into the device by adding the repository in Cydia from the below provided link:
+https://ryleyangus.com/repo/	                        
+Follow the below mentioned functional path in your device:
+Settings -> Liberty Lite -> Enable Liberty -> Block Jailbreak Detection, enable the Liberty for "<----app-name---->".
+Now, open and access the application.
+Observe that application is not detecting jailbreak.
+SSH to your test device and run the below commands:
+ps aux | grep -i "<----app-bin-name---->"
+id
+Observe that the application can be installed on jail broken device and running as a process.
+
+PoC Caption:
+Screenshot showing the application detects the jailbroken device and throws an error.
+Screenshot showing the jailbreak detection bypass is applied.
+Screenshot showing that the jailbreak detection is bypassed in the application successfully.
+Screenshot showing the application running successfully as a process on a jailbroken device.
+
+
+Remediation: 
+Apple does not offer an API for detecting jailbroken devices, necessitating each application to develop its own proprietary solution. Implementing effective jailbreak detection can pose challenges, requiring product teams to focus on increasing the effort needed to bypass root detection. Layering jailbreak detection with binary hardening controls adds complexity, deterring attackers from reverse-engineering the detection mechanisms. Otherwise, attackers may exploit "bypass" techniques, tricking the application into disregarding jailbroken status.
+
+
+
+=============
+
+Use Of Vulnerable Cordova or PhoneGap Framework Version
+-----------------------------------------------------------
+Additional Observation Note: The application does not use the latest Cordova version. We recommends using the latest Cordova version "6.2.0" mentioned in the below link. As this Cordova version doesn’t have any publicly disclosed vulnerabilities, it was not included in the report as finding. 
+https://github.com/apache/cordova-ios/releases
+
+PoC Caption:
+Screenshot showing the Cordova version used by the application.
+
+
+Description:
+The application incorporates a known-vulnerable version of Cordova or a Cordova-derived framework. Cordova facilitates cross-platform mobile app development using CSS, HTML5, and JavaScript, negating reliance on platform-specific APIs. It's crucial to note that various other cross-platform frameworks, such as PhoneGap, Ionic, Monaca, TACO, Intel XDK, and Telerik Platform, are built upon Cordova.
+
+
+App Name: <----app-name---->
+File Path: Payload/<----app-bin-name---->.app/www/
+File Name: cordova.js
+
+Steps To Reproduce:
+Download the .ipa file of "<----app-name---->" iOS Application on your host machine.
+Rename the. ipa file to .zip file.
+Extract the contents of the .zip file and go inside the Payload folder.
+Locate the "cordova.js" file by navigating to the "File Path" mentioned in the "Instances" section.
+Open the "cordova.js" file in any text editor.
+Observe that the application using "<----version---->" Cordova version, which has publicly known vulnerabilities.
+
+PoC Caption:
+Screenshot showing that vulnerable Cordova version is being used.
+
+
+Remediation:
+To mitigate the risk of known vulnerabilities being exploited, ensure the application employs the latest available version of Cordova/PhoneGap. Regular updates help address security flaws and enhance overall resilience against potential exploits.
+
+
+
+=============
+
+Login Credential Found In Device Memory Dump
+--------------------------------------------
+Description:
+The application neglects to adequately clear a user's credentials from memory post a successful authentication attempt on the device. Failing to do so leaves the credentials vulnerable to potential access by attackers, potentially leading to compromise of the user's account.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install Frida in both PC and test device. (Refer: Appendix C)
+Install Objection on PC. (Refer: Appendix C)
+Connect the jailbroken test device to the host machine which has Objection tool installed in it.
+Login to the application.
+Run the following command in terminal to list the processes running in the host device:
+$ frida-ps -Ua
+In terminal, run the following command to start the Objection:
+$ objection -g <----app-pkg-name----> explore
+# memory dump all appdump.txt
+Search for the password in the dump file using Notepad++.
+Note that credentials are stored in the memory even after login.
+
+PoC Caption:
+Screenshot showing the username and password stored in memory after login.
+
+OR
+
+Install the "<----app-name---->" iOS application on your jailbreak device. 
+Install Frida in both PC and Frida server on testing device. (Refer: Appendix C)
+Start the application in the test device and login to the application using the credentials provided. 
+Logout from the application.
+Connect your jailbroken iOS device to your system using USB cable. 
+Download fridump package from the following link:
+https://github.com/Nightbringer21/fridump 
+In order to dump the memory, type in the following command: 
+python2.7 fridump.py -U -s "<----app-name---->" 
+Observe that a folder named "dump" is created in the current working directory. 
+Search for the password in the strings.txt file using Notepad++.
+Note that credentials are stored in the memory even after login.
+
+PoC Caption:
+Screenshot showing Fridump tool in use.
+Screenshot showing Username and Password found in memory dump.
+
+
+Remediation:
+During authentication, it's imperative that the application minimizes the duration for which credentials remain in memory, discarding them promptly once no longer required. iOS provides the Keychain as a secure storage option for sensitive information like passwords. Utilizing the Keychain ensures that sensitive data is securely managed and protected.
+
+
+
+=============
+
+Misconfigured Access Origin In Cordova Or PhoneGap
+--------------------------------------------------------
+Description:
+The application's Apache Cordova domain allow-list is overly permissive, enabling content from unauthorized sites to be accessed within the application's main WebView.
+
+
+App Name: <----app-name---->
+File Path: Payload/<----app-bin-name---->.app/
+File Name: config.xml
+
+Steps To Reproduce:
+Convert the application IPA file "<----IPA-File---->.ipa" to zip file like "file.zip".
+Extract the contents of the "file.zip" file.
+Navigate to the "File path" mentioned in the "Instances" section.
+Open "config.xml" using any text editor like Notepad++.
+Observe in the config.xml file that the access origin is set to "*" allowing all domains to have a two-way interaction with this domain.
+
+PoC Caption:
+Screenshot showing the access origin value is set as wildcard (*) in "config.xml" file.
+
+
+Remediation:
+Applications should be configured to communicate solely with a predefined list of authorized hosts. This involves configuring the access origin to ensure that the main WebView can exclusively load content from authorized sites.
+
+
+
+=============
+
+Integrity Check Not Implemented On WebView Content
+---------------------------------------------------
+Description:
+The application renders HTML/JavaScript content stored locally via UIWebView, posing susceptibility to tampering. Since UIWebView renders content similarly to Safari, users are vulnerable to common web attacks without proper security controls. For example, attackers with physical device access or malware on jailbroken devices can modify files to execute Cross-Site Scripting (XSS) attacks. Even without jailbreaking, file modifications are possible using file explorer apps like iFile. Consequently, attackers can manipulate locally stored HTML/JavaScript to carry out various attacks, putting end-users at risk of XSS, phishing, etc. Additionally, UIWebView-rendered content has access to the application sandbox, potentially compromising integrity.
+
+
+App Name: <----app-name---->
+File Path: <--xssp-->
+File Path: <--xssl-->
+File Name: index.html
+
+Steps To Reproduce:
+Using a file browser/editor like "Filza", navigate to the below mentioned directory on your iOS device:
+<--bfp-->/www
+Add the following code and save the "index.html" file:
+<script>alert(7)</script>
+Launch the "<----app-name---->" application.
+Observe that the injected JavaScript code executes successfully.
+
+PoC Caption:
+Screenshot showing the editor Screenshot showing that the JavaScript payload was injected in the "index.html" file.
+Application Screenshot showing that the JavaScript payload was executed successfully.
+
+
+Remediation:
+The application should implement stringent integrity checks on its local content. Preferably, avoid storing HTML/JavaScript content locally by fetching it from the server when needed, or replace UIWebViews with UIView or UITableView. If local storage is necessary, enforce integrity checks. Here's a sample mechanism:
+1. The server sends digital signatures of files to the application during installation/update.
+2. The application securely stores these digital signatures, such as in the iOS keychain.
+3. Embed the required public key for verifying digital signatures in the application's binary.
+4. Upon application startup, verify the signatures of local resources. If they don't match the stored values, the application should warn the user, quit, or download authentic files from the server.
+
+
+
+=============
+
+Application Not Disabled Sensitive Data From Being Copied
+----------------------------------------------------------
+Description:
+The iOS application permits sensitive data to be copied, thereby exposing it to third-party applications. When applications are active, they can programmatically access data from the system-wide pasteboard, potentially leading to theft of sensitive information through this avenue.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Launch the "<----app-name---->" Application on test iOS device.
+Double tap the "User ID" field on the login page.
+Observe that Copy and Paste functionality is enabled.
+
+PoC Caption:
+Screenshot showing the copy and Paste functionality is enabled for "User ID" field.
+Screenshot showing the copied data can be pasted into another application.
+
+
+Remediation:
+The application should restrict users from copying sensitive data out of the app by disabling copy and cut functionality for sensitive user interface components.
+
+
+
+=============
+
+Screenshot Disclosing Sensitive Information
+--------------------------------------------
+Description:
+The application inadvertently exposes sensitive information through automatically generated screenshots. Any sensitive data displayed on-screen before transitioning to the background is cached on the device within the screenshot image. The image persists on the filesystem within the application's sandbox directory, adhering to the following format: /private/var/mobile/Containers/Data/Application/<Application>/Library/Caches/Snapshots/<Bundle-ID>/<Random-ID>@2x.ktx
+
+
+App Name: <----app-name---->
+File Path: <--dfp-->/Library/SplashBoard/Snapshots
+
+Steps To Reproduce:
+Launch the "<----app-name---->" application on test iOS device.
+Login to the application and put the application to background.
+Navigate to the "File Path" as mentioned in the above "Instances" section.
+Observe that the application stores screenshot having sensitive information in device storage.
+
+PoC Caption:
+Screenshot showing that the application stores screenshot having sensitive information in background.
+Screenshot showing that the application stores screenshot having sensitive information in local storage.
+
+Remediation:
+To mitigate the risk of sensitive data exposure through backgrounded screenshots, take proactive measures to prevent the application from entering the background state or mask sensitive UI data. Implement functionality within your application delegate's "applicationWillResignActive" method to replace sensitive on-screen content with an alternative view that doesn't contain sensitive information (e.g., a custom splash screen). This method is triggered just before the application transitions to the background state, ensuring sensitive data isn't captured in automatic screenshots.
+
+
+
+=============
+
+Application Allows Custom Keyboards On Sensitive Fields
+--------------------------------------------------------
+Description:
+The application lacks configuration to restrict the use of custom keyboards. These keyboards potentially have access to both user keystrokes and data passed to active input fields. There's a risk that custom keyboards could log and transmit a user's key presses via network access to a remote system.
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install any custom keyboard on your test iOS device from AppStore.
+Set up the device to use the custom keyboard.
+Navigate to "Settings > General > Keyboard > Keyboards > Add New Keyboard".
+Select the installed custom keyboard.
+Launch "<----app-name---->" application on test iOS device.
+Navigate to the login page.
+Tap on the "User ID" field to enter the email, hold on the "Globe" image on the keyboard.
+Observe that application allows usage of Custom keyboard on sensitive fields.
+
+PoC Caption:
+Screenshot showing that the application allows to change keyboard.
+Screenshot showing that the application allows use of custom keyboard.
+
+
+Remediation:
+Applications can choose to opt out of custom keyboards, particularly high-risk applications which should be configured to explicitly prevent their use.
+
+
+
+=============
+
+Missing Security Checks on the Enrollment of Additional Biometrics
+-------------------------------------------------------------------
+Description:
+Authentication bypass was identified through the enrollment of new biometrics on the device. iOS permits users to register multiple biometrics, such as fingerprints, assuming knowledge of the device passcode. However, after the initial setup and enrollment in the application, subsequent biometric registrations aren't verified. Consequently, any biometrics added post-setup are accepted without confirming if they belong to the same user, posing a security risk.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install the "<----app-name---->" application on the test device.
+Login to the application via registering the user account and enabling the Touch-ID.
+Logout and close the application.
+Add another fingerprint(attacker's) under "Touch ID/Face ID & Passcode" in device Settings.
+Launch the application and observe that the application asks for "Touch ID" login and authenticate with the newly registered TouchID or FaceID.
+Observe that the user is authenticated successfully to the application indicating that the application does not verify the newly registered Touch ID.
+
+PoC Caption:
+Screenshot showing that the device is configured with "Victim's Touchid" in the device.
+Screenshot showing that the application prompts for "Touch-ID" for login again.
+Screenshot showing that the Victim is successfully logged in to the application.
+Screenshot showing that the device is configured with "Attacker's Touchid" in the device.
+Screenshot showing that the application prompts for "Touch-ID" for login again.
+Screenshot showing that the Attacker is successfully logged in to the application.
+
+
+Remediation:
+The application must validate if new biometrics have been registered and re-authenticate the user accordingly. iOS applications can mitigate this risk by checking for additional biometric registrations. If detected, the application should prompt the user to re-authenticate, explaining the need for this action to ensure security.
+
+
+
+=============
+
+Biometric Authentication Bypass
+----------------------------------
+Description:
+Successfully bypassing biometric authentication grants an attacker full access to the application, essentially bypassing security measures as if they had legitimately authenticated.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Install Frida in both PC and test device. (Refer: Appendix C)
+Install Objection on PC. (Refer: Appendix C)
+Connect the jailbroken test device to the host machine which has Objection tool installed in it.
+Install the "<----app-name---->" application on the test device.
+Login to the application via registering the user account and enabling the Touch-ID.
+Logout and close the application.
+Launch the application and observe that the application asks for "Touch ID" login.
+Run the following command in terminal to list the processes running in the host device:
+$ frida-ps -Ua
+In terminal, run the following command to start the Objection:
+$ objection -g <----app-pkg-name----> explore
+# ios ui biometrics_bypass
+In test device, application will prompt touch-ID login, select "Cancel" and observe the user is successfully authenticated.
+
+PoC Caption:
+Screenshot showing the Touch ID screen for authenticating to the application.
+Screenshot showing that the Objection is able to hook to the process and bypass the Touch-ID.
+Screenshot showing the Successful login into the application.
+
+
+Remediation:
+To enhance security, the application should employ Keychain services for biometric authentication instead of relying solely on the LocalAuthentication Framework. An effective method involves storing a secret, like a refresh token or session, in the Keychain with Security Access Controls. Subsequently, when the application seeks to retrieve this data, the user is prompted to authenticate via biometrics. For refresh tokens or sessions, authenticated data can then be sent to the server for authentication purposes.
+
+
+
+=============
+
+Certificate Pinning Not Implemented
+--------------------------------
+Description:
+The application lacks certificate pinning, leaving its network connections vulnerable to potential man-in-the-middle (MITM) attacks. Certificate pinning serves as a defense-in-depth measure to thwart such attacks, as it prevents adversaries from creating valid certificates for hosts the application connects to.
+
+
+App Name: <----app-name---->
+IPA File Name: <----SSL---->.ipa
+
+Steps To Reproduce:
+Download and install the "<----SSL---->.ipa" iOS Application on your test iOS device.
+Configure an iOS device to use a proxy tool such as Burp Suite as mentioned in "Appendix B Proxy" Setup section.
+Log in to the application and go to Burp HTTP history.
+Observe that the application traffic can be viewed in a third-party proxy tool like Burp Suite indicating certificate pinning is not implemented.
+
+PoC Caption:
+Burp event logs screenshot shows that the target domain did not have any issues while sending requests.
+Screenshot showing that the application traffic can be viewed in third-party proxy tool like Burp Suite.
+
+
+Remediation:
+Mobile applications can enable certificate transparency for non-critical application traffic; however, for traffic containing sensitive or critical information, they should employ certificate pinning. This practice ensures an added layer of security by preventing potential adversaries from intercepting and tampering with sensitive data.
+
+
+
+=============
+
+Certificate Pinning Bypass
+------------------------------
+Description:
+The mobile application employs Application Transport Security (certificate pinning) to bolster the security of its network connections. Certificate pinning serves as a defense-in-depth measure against potential man-in-the-middle (MITM) attacks, where attackers could create valid certificates for hosts the application connects to. However, the implementation methodology for certificate pinning was inadequate, resulting in a bypass of the certificate pinning mechanism.
+
+
+App Name: <----app-name---->
+IPA File Name: <----SSL---->.ipa
+
+Steps To Reproduce:
+Download and install the "<----SSL---->.ipa" iOS Application on your test iOS device.
+Make sure that Burp proxy is configured with your test device.
+(Refer to the "Appendix B Proxying Traffic" section to know more about how to
+configure proxy on an iOS device).
+Login to the application and observe that the application traffic cannot be viewed
+in a third-party proxy tool like Burp Suite indicating certificate pinning is
+enabled/implemented.
+Install "SSL Kill Switch 2" from the below provided link:
+https://jonlu.ca/repo
+Follow the functional path mentioned below:
+Settings → SSL Kill Switch 2 → Disable Certification Validation
+Enable the "Disable Certification Validation".
+Log in to the application and go to Burp history.
+Observe that the application traffic can be viewed in a third-party proxy tool like
+Burp Suite indicating certificate pinning is bypassed.
+
+PoC Caption:
+Screenshot showing that the application is not allowing to intercept the traffic.
+Screenshot showing that the "SSL KILL SWITCH 2" is enabled.
+Screenshot showing that the application traffic can be viewed in third-party proxy tool like Burp Suite.
+
+OR
+
+Download and install the "<----SSL---->.ipa" Application on your test iOS device.
+Configure an iOS device to use a proxy tool such as Burp Suite as mentioned in Appendix B Proxy Setup section.
+Log in to the application.
+Observe that we are unable to intercept the applications data using a third-party proxy tool like Burp Suite.
+Install Frida in both PC and test device. (Refer: Appendix C)
+Install Objection on PC. (Refer: Appendix C)
+Connect the jailbroken test device to the host machine which has Objection tool installed in it.
+Login to the application.
+Run the following command in terminal to list the processes running in the host device:
+$ frida-ps -Ua
+In terminal, run the following command to start the Objection:
+$ objection -g <----app-pkg-name----> explore
+# ios sslpinning disable
+Observe that the application traffic can be viewed in a third-party proxy tool like Burp Suite indicating certificate pinning is bypassed.
+
+PoC Caption:
+Screenshot showing that the application gives error on connecting to the proxy tool.
+Screenshot showing that the certificate pinning is being bypassed using Objection tool.
+Screenshot showing that the application traffic can be viewed in third-party proxy tool like Burp Suite.
+
+Remediation: 
+To enhance the robustness of certificate pinning, consider implementing it alongside defensive programming techniques. These measures can help mitigate common certificate pinning bypass techniques employed by readily available hacking tools like Objection. Such defensive strategies may include regularly updating and strengthening the pinning logic, employing dynamic pinning techniques, implementing certificate pinning at multiple layers of the application, and incorporating additional security controls to detect and respond to bypass attempts.
+
+
+
+=============
+
+Unmasked Sensitive Data
+------------------------
+Description:
+
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Launch the "<----app-name---->" iOS application on test iOS device.
+Log into the application.
+Navigate to the below mentioned functional path:
+Menu ->
+Select one of the "ID Type" and enter the data in "ID Number" field.
+Observe that the data is not masked.
+
+PoC Caption:
+Screenshot showing that the "ID Number" is not masked while typing.
+Screenshot showing that the "ID Number" is not masked.
+
+
+Remediation:
+
+
+
+
+
+=============
+
+Internal IP Discovered
+--------------------------
+Description:
+Exposing internal network IP addresses in server responses poses a significant security risk, facilitating potential attackers in conducting reconnaissance and crafting targeted attacks against the internal network. This information leakage accelerates the attacker's ability to identify vulnerable systems and plan more precise infiltration strategies.
+
+
+App Name: <----app-name---->
+File Path: Payload/<----app-bin-name---->.app/
+File Name: 
+
+Steps To Reproduce:
+Convert the .ipa file of application to .zip file.
+Extract the contents of the .zip file.
+Navigate to the following "File path" as mentioned in the "Instances" section.
+Open the file mentioned in the "Instances" section with an editor such as Notepad++.
+Observe that the internal IP is being disclosed in the file.
+
+PoC Caption:
+Screenshot showing the internal IP is being disclosed.
+
+OR
+
+Launch the "<----app-name---->" iOS application on a jailbroken device.
+Ensure you have "iFile" installed on your jailbroken iOS device.
+Log in to the application and browse some of the functionalities and log out from the application.
+Open "iFile" and browse the "File Path" mentioned in the "Instances" section.
+Open the file mentioned in the "Instances" section with an editor such as Notepad++.
+Observe that the internal IP is being disclosed in the file.
+
+PoC Caption:
+Screenshot showing the internal IP is being disclosed.
+
+
+Remediation:
+Absolutely, sensitive network details such as internal IP addresses and server names should never be exposed to end-users. Instead, the application and server configurations should be adjusted to provide generic error messages devoid of any sensitive information. If detailed error information is required for debugging or support purposes, it should be logged on the server side along with a unique identifier. This identifier can then be displayed to the user alongside a generic error message for reference.
+
+
+
+=============
+
+Application Binary Is Not Obfuscated
+-------------------------------------
+Additional Observation:
+The application does not make use of binary obfuscation. Binary obfuscation is a group of defense-in-depth techniques aimed at making the reverse engineering of applications more difficult.
+
+PoC Caption:
+Ghidra disassembler output showing Objective-C classes and methods present inside the binary.
+
+
+Description:
+Lack of binary obfuscation in the application leaves it vulnerable to reverse engineering attacks. Without obfuscation, attackers can easily analyze the executable, extract sensitive information such as symbols, strings, and execution flow, and potentially exploit vulnerabilities within the code.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Download the .ipa file of "<----app-name---->" file on your host machine.
+Extract the contents of the .ipa file using zip utility such as 7-zip.
+Navigate to the file path mentioned in the "Instances" section to grab the application binary.
+Use a tool like Ghidra Disassembler (https://ghidra-sre.org/) to analyse and decompile the application binary.
+Observe that binary is not obfuscated.
+
+PoC Caption:
+Terminal screenshot showing that the cryptid is 0 which indicates that the application's binary is not encrypted.
+Ghidra disassembler output showing Objective-C classes and methods present inside the binary.
+
+
+Remediation:
+
+For applications handling highly sensitive data, conducting financial transactions, or containing proprietary intellectual property, it's advisable to introduce binary obfuscation techniques. By obfuscating the binary, the code becomes harder to reverse engineer, enhancing the overall security posture of the application.
+While Objective-C and Swift code aren't obfuscated by default, production builds do partially strip symbols, limiting the exposure of sensitive information. However, for more comprehensive obfuscation, consider utilizing various open-source or commercial obfuscation tools. These tools offer different obfuscation controls, so it's essential to evaluate and configure them independently.
+
+
+
+=============
+
+Lack of Authentication After Background Resume
+------------------------------------------------
+Description:
+After the application resumes from the background, it fails to prompt the user for re-authentication, assuming the user remains signed in. This oversight can potentially grant unauthorized access to the application, especially if the device falls into the hands of an attacker.
+
+
+App Name: <----app-name---->
+
+Steps To Reproduce:
+Launch the "<----app-name---->" application on your testing iOS device.
+Log in to the application.
+Tap the home button to send the application to background for 10 minutes.
+Double tap the home button and select the application to bring it on foreground.
+Note that authentication is not required to access the application after background resume.
+
+PoC Caption:
+Observe the time before sending the application in background.
+Observe that authentication is not required to access the application after background resumes.
+
+
+Remediation:
+For applications handling regulated personal data or high-value transactions, it's essential to invalidate sessions both server-side and locally after a brief grace period. 
+The server should set session timeouts to expire after 10 minutes of inactivity, while the application itself should implement a similar timeout locally. This local timeout can be managed using iOS lifecycle methods like "applicationDidBecomeActive:" and "applicationDidEnterBackground:".
+
+
+
+=============
+
+Improper Application Cookie Policy
+------------------------------------
+Description:
+The application's cookie policy, set to "NSHTTPCookieAcceptPolicyAlways," permits the processing of cookies from any domain, including those outside the organization. Without specific URL or domain allow-listing, cookies from any third-party domain can be accepted and utilized. Apple's standard APIs offer three cookie policies, ranging from least to most restrictive: "Accept Always" (NSHTTPCookieAcceptPolicyAlways), "Accept Only from Main Document Domain" (NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain), and "Accept Never" (NSHTTPCookieAcceptPolicyNever). Adopting an overly broad cookie policy may compromise security by allowing acceptance of third-party cookies within the application sandbox.
+
+
+App Name: <----app-name---->
+File Path: <--dfp-->/Library/Cookies
+File Name: Cookies.binarycookies
+
+Steps To Reproduce:
+Install and launch the "<----app-name---->" application on your jailbroken test iOS device.
+SSH onto the jailbroken device using a terminal window.
+Run the below commands in the terminal:
+# cd <--dfp-->/Library/Cookies/
+# ls
+# cat Cookies.binarycookies
+Observe that the terminal displays the content of the file i.e. NSHTTPCookieAcceptPolicy, which by default equals to "NSHTTPCookieAcceptPolicyAlways".
+Reference: https://developer.apple.com/documentation/foundation/nshttpcookiestorage/1410415-cookieacceptpolicy
+
+PoC Caption:
+Terminal screenshot showing the insecure cookie policy i.e. NSHTTPCookieAcceptPolicy.
+
+
+Remediation:
+The application should configure its cookie policy to the most restrictive setting required for its functionality.
+
+
+
+=============
+
+HTTP URLs Without SSL
+------------------------------
+App Name: <----app-name---->
+
+Additional Observation:
+During the pentest, We observed that the URL scheme used by the applications does not have HTTPS implemented. However, Synopsys is not aware of the server-side implementation. Hence, we have not reported this as a lead finding.
+
+PoC Caption:
+Screenshot showing the application URL scheme without HTTPS.
+
+
+
+=============
+
+Checking Symbol Information
+--------------------------------
+App Name: <----app-name---->
+
+Additional Observation:
+During the pentest, Synopsys observed that the application’s binary contains debug symbol information that may help an attacker reverse engineer the application. However, the application binary displays global text symbol "T" against objects which are not application specific class files. Hence, this finding has not been reported.
+
+PoC Caption:
+Screenshot shows that the debugging symbols are present within the application's binary.
+
+
+
+=============

@@ -1,0 +1,2 @@
+ios ui biometrics_bypass
+!echo %CY%[*] In test device, application will prompt touch-ID login, select "Cancel" and observe the user is successfully authenticated.%CRSET%
