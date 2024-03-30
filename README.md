@@ -94,16 +94,16 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
      
        ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/4e3721ab-c2e4-4f8a-9c19-59b023a3c3b4)
 11. Open the ``` keywords.txt ``` file in a text editor like Notepad, and input all sensitive data as keywords for the searching process, such as username, password, email, pin, etc.
+   
+    Note: Be very careful when adding data in the 'keywords.txt' file. Ensure there are no empty lines, especially at the end. Sometimes, the application URL-encodes special characters, so make sure to repeat the keyword by converting it into URL-encoded form. For example, as shown in the image below, 'Password@123' is provided and repeated by URL encoding the '@' symbol, making it 'Password%40123'.
 
-   Note: Be very careful when adding data in the 'keywords.txt' file. Ensure there are no empty lines, especially at the end. Sometimes, the application URL-encodes special characters, so make sure to repeat the keyword by converting it into URL-encoded form. For example, as shown in the image below, 'Password@123' is provided and repeated by URL encoding the '@' symbol, making it 'Password%40123'.
-
-   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/5bc5806f-48c5-4de7-bfa0-2d9e0b5c0040)
+      ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/5bc5806f-48c5-4de7-bfa0-2d9e0b5c0040)
    
 12. Using 3utools, just drag and drop the ``` dvia ``` folder in the ``` applications ``` folder present in the ``` iOS ``` directory of the iOS Buster tool.
 
-   Note: 'a-sample-folder' directory is present inside the 'applications' directory for your reference, providing information on the necessary files and folders.
+      Note: 'a-sample-folder' directory is present inside the 'applications' directory for your reference, providing information on the necessary files and folders.
 
-   ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c83a3977-0691-43df-9244-972f08a47adf)
+      ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c83a3977-0691-43df-9244-972f08a47adf)
 
 13. Now we are all set to execute our iOS Buster tool. 
    Launch the target application, in our case, it is 'DVIA v2', but do not log in. Connect the iOS device via SSH and execute the following command: ``` ios-buster.sh -a "<app-name>" -d applications/<folder-name> ```
