@@ -52,4 +52,10 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
     ```
     ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/c1ad30a8-8422-4d93-a493-f64fd16573e9)
 
+# Usage
+1. Install the target application you want to pentest using the iOS Buster tool, or alternatively, use 3uTools to install the IPA file.
+2. Launch the application and thoroughly navigate through all functionalities, including submitting forms and updating items such as user profile picture, change password, etc. This action is essential for generating data in both the device's local storage and system logs, thereby facilitating improved output from the tool. These steps are critical, as approximately 90% of dynamic test cases rely on this process. Failure to properly navigate the application may result in data not being stored in the local storage.
+3. In many applications, you will encounter numerous user input fields such as address, comment boxes, support forms, etc. Instead of providing random data in each of these fields, consider using a consistent keyword like 'iOSTest' or 'ipaTest'. You can create your own keyword, For example your name. This approach simplifies the process as you only need to search for one keyword rather than multiple ones.
+4. Once
+
    
