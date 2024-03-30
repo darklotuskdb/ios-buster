@@ -3,4 +3,6 @@ The iOS Buster is a groundbreaking penetration testing tool for iOS, capable of 
 
 # Installation
 1. Download the latest release of the iOS-Buster tool
-   ``` https://github.com/darklotuskdb/ios-buster/releases/latests```
+   ``` 
+   https://github.com/darklotuskdb/ios-buster/releases/latests
+   ```
