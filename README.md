@@ -77,7 +77,7 @@ Scanning DeepLinks [Need to improve]
    ![image](https://github.com/darklotuskdb/ios-buster/assets/29382875/86a83755-01df-468d-b00b-33db9c300531)
 9. We need some tools to be installed before running the iOS Buster tool as listed below:
     ```
-    gawk nano unzip coreutils tree libplist-utils cycript lldb
+    gawk nano unzip coreutils tree libplist-utils cycript lldb darwintools
     ```
     To install these tools run the Install-Setup.sh file:
       ```
